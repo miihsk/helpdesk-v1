@@ -1,0 +1,28 @@
+# ============================
+# DEPENDÊNCIAS DO SISTEMA DE ATENDIMENTO DJANGO
+# ============================
+
+# Framework principal
+Django==5.1.2
+
+# Tema visual do painel administrativo
+django-jazzmin==3.0.0
+
+# Biblioteca para interface com o banco SQLite (já vem embutido, mas mantemos por clareza)
+sqlparse==0.5.1
+
+# Suporte a timezone e datas (usado internamente pelo Django)
+tzdata==2025.1
+
+# Dependências opcionais do ambiente (boas práticas)
+asgiref==3.8.1
+typing-extensions>=4.10.0
+
+# ============================
+# AMBIENTE DE DESENVOLVIMENTO
+# ============================
+# Use estas se for rodar em VSCode, PyCharm ou Google Colab
+# (Não são obrigatórias em produção)
+# ipython==8.26.0
+# django-debug-toolbar==4.4.6
+# black==24.10.0

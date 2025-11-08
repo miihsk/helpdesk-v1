@@ -1,0 +1,37 @@
+{% extends 'atendimento/base.html' %}
+{% block title %}Detalhes do Chamado{% endblock %}
+{% block content %}
+<h2>Chamado: {{ chamado.titulo }}</h2>
+<p><strong>Status:</strong> {{ chamado.get_status_display }}</p>
+<p><strong>Prioridade:</strong> {{ chamado.get_prioridade_display }}</p>
+<p><strong>Categoria:</strong> {{ chamado.categoria }}</p>
+<p><strong>Descrição:</strong></p>
+<div class="border p-2 mb-4 bg-white">{{ chamado.descricao }}</div>
+
+<h4>Mensagens</h4>
+<div class="mb-3">
+    {% for msg in mensagens %}
+    <div class="card mb-2 {% if msg.autor == user %}border-primary{% else %}border-secondary{% endif %}">
+        <div class="card-body">
+            <p class="mb-1">{{ msg.texto }}</p>
+            <small class="text-muted">
+                Por {{ msg.autor.username }} em {{ msg.data_envio|date:"d/m/Y H:i" }}
+            </small>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Nenhuma mensagem ainda.</p>
+    {% endfor %}
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="mensagem" class="form-label">Nova mensagem</label>
+        <textarea name="mensagem" id="mensagem" class="form-control" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+
+<a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
+{% endblock %}

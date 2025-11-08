@@ -1,0 +1,43 @@
+{% extends 'atendimento/base.html' %}
+{% block title %}Meus Chamados{% endblock %}
+{% block content %}
+<h2>📋 Meus Chamados</h2>
+<a href="{% url 'novo_chamado' %}" class="btn btn-success mb-3">+ Novo Chamado</a>
+
+{% if chamados %}
+<table class="table table-bordered table-hover bg-white">
+    <thead class="table-primary">
+        <tr>
+            <th>Título</th>
+            <th>Categoria</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Abertura</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in chamados %}
+        <tr>
+            <td>{{ c.titulo }}</td>
+            <td>{{ c.categoria.nome }}</td>
+            <td>{{ c.get_prioridade_display }}</td>
+            <td>
+                {% if c.status == 'aberto' %}
+                    <span class="badge bg-success">Aberto</span>
+                {% elif c.status == 'andamento' %}
+                    <span class="badge bg-warning text-dark">Em andamento</span>
+                {% else %}
+                    <span class="badge bg-secondary">Resolvido</span>
+                {% endif %}
+            </td>
+            <td>{{ c.data_abertura|date:"d/m/Y H:i" }}</td>
+            <td><a href="{% url 'chamado_detalhes' c.id %}" class="btn btn-sm btn-outline-primary">Ver</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">Você ainda não possui chamados.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'atendimento/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>📈 Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-center border-primary mb-3">
+            <div class="card-body">
+                <h5>Total de Chamados</h5>
+                <h3>{{ total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success mb-3">
+            <div class="card-body">
+                <h5>Abertos</h5>
+                <h3>{{ abertos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning mb-3">
+            <div class="card-body">
+                <h5>Em Andamento</h5>
+                <h3>{{ andamento }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-secondary mb-3">
+            <div class="card-body">
+                <h5>Resolvidos</h5>
+                <h3>{{ resolvidos }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
