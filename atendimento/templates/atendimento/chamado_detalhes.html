@@ -1,15 +1,45 @@
 {% extends 'atendimento/base.html' %}
 {% block title %}Detalhes do Chamado{% endblock %}
 {% block content %}
+
+{% if user.tipo == "atendente" or user.tipo == "administrativo" %}
+  {% if chamado.status != "resolvido" %}
+    <!-- Botão que mostra o formulário -->
+    <button id="btnMostrarForm" class="btn btn-danger mb-3">Fechar Chamado</button>
+
+    <!-- Formulário escondido -->
+    <form id="formFecharChamado" action="{% url 'fechar_chamado' chamado.id %}" method="post" style="display:none;" class="mt-3">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="mensagem_final" class="form-label">Mensagem de Encerramento (opcional)</label>
+        <textarea name="mensagem_final" id="mensagem_final" class="form-control" rows="3"
+                  placeholder="Descreva como o chamado foi resolvido..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-danger">Confirmar Encerramento</button>
+      <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+    </form>
+  {% else %}
+    <span class="badge bg-success">Chamado Fechado</span>
+  {% endif %}
+{% endif %}
+
 <h2>Chamado: {{ chamado.titulo }}</h2>
-<p><strong>Status:</strong> {{ chamado.get_status_display }}</p>
+<p><strong>Status:</strong>
+  {% if chamado.status == 'aberto' %}
+    <span class="badge bg-primary">Aberto</span>
+  {% elif chamado.status == 'andamento' %}
+    <span class="badge bg-warning text-dark">Em andamento</span>
+  {% elif chamado.status == 'resolvido' %}
+    <span class="badge bg-success">Resolvido</span>
+  {% endif %}
+</p>
 <p><strong>Prioridade:</strong> {{ chamado.get_prioridade_display }}</p>
 <p><strong>Categoria:</strong> {{ chamado.categoria }}</p>
 <p><strong>Descrição:</strong></p>
 <div class="border p-2 mb-4 bg-white">{{ chamado.descricao }}</div>
 
 <h4>Mensagens</h4>
-<div class="mb-3">
+<div id='mensagens-container' class="mb-3">
     {% for msg in mensagens %}
     <div class="card mb-2 {% if msg.autor == user %}border-primary{% else %}border-secondary{% endif %}">
         <div class="card-body">
@@ -24,14 +54,45 @@
     {% endfor %}
 </div>
 
-<form method="POST">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="mensagem" class="form-label">Nova mensagem</label>
-        <textarea name="mensagem" id="mensagem" class="form-control" rows="3" required></textarea>
+{% if chamado.status != "resolvido" %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="mensagem" class="form-label">Nova mensagem</label>
+            <textarea name="mensagem" id="mensagem" class="form-control" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
+{% else %}
+    <div class="alert alert-success mt-3">
+        <strong>Chamado encerrado.</strong> Não é possível enviar novas mensagens.
     </div>
-    <button type="submit" class="btn btn-primary">Enviar</button>
-</form>
+{% endif %}
+
 
 <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
+
+<!-- Script para mostrar/esconder o form -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+  const btnMostrar = document.getElementById("btnMostrarForm");
+  const formFechar = document.getElementById("formFecharChamado");
+  const btnCancelar = document.getElementById("btnCancelar");
+
+  if (btnMostrar && formFechar) {
+    btnMostrar.addEventListener("click", () => {
+      formFechar.style.display = "block";
+      btnMostrar.style.display = "none";
+    });
+
+    btnCancelar.addEventListener("click", () => {
+      formFechar.style.display = "none";
+      btnMostrar.style.display = "inline-block";
+    });
+  }
+});
+
+</script>
+
 {% endblock %}
