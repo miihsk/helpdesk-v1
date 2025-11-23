@@ -43,10 +43,6 @@ def logout_view(request):
     return redirect('login')
 
 
-# ==============================
-# PÁGINA INICIAL / LISTA DE CHAMADOS
-# ==============================
-
 @login_required
 def index(request):
     """Mostra os chamados dependendo do tipo de usuário"""
@@ -60,15 +56,14 @@ def index(request):
             usuario__tipo='cliente'
         ).exclude(status='resolvido').order_by('-data_abertura')
 
-    else:  # cliente
+    elif user.tipo == 'atendente':
+        if user.categoria: chamados = Chamado.objects.filter(categoria=user.categoria).order_by('-data_abertura')
+        else: chamados = Chamado.objects.none()
+
+    else: 
         chamados = Chamado.objects.filter(usuario=user).order_by('-data_abertura')
 
     return render(request, 'atendimento/index.html', {'chamados': chamados})
-
-
-# ==============================
-# NOVO CHAMADO
-# ==============================
 
 @login_required
 def novo_chamado(request):
@@ -93,25 +88,17 @@ def novo_chamado(request):
     categorias = Categoria.objects.all()
     return render(request, 'atendimento/novo_chamado.html', {'categorias': categorias})
 
-
-# ==============================
-# DETALHES DO CHAMADO + MENSAGENS
-# ==============================
-
 @login_required
 def chamado_detalhes(request, id):
     """Exibe detalhes e permite interação com o chamado"""
     chamado = get_object_or_404(Chamado, id=id)
     user = request.user
 
-    # Impede cliente de ver chamado que não é dele
     if user.tipo == 'cliente' and chamado.usuario != user:
         messages.error(request, "Você não tem permissão para ver este chamado.")
         return redirect('index')
 
-    # POST: Envio de mensagens ou encerramento
     if request.method == 'POST':
-        # Envio de nova mensagem
         if 'mensagem' in request.POST:
             if chamado.status == 'resolvido':
                 messages.warning(request, "Este chamado já foi encerrado. Não é possível enviar novas mensagens.")
@@ -120,14 +107,11 @@ def chamado_detalhes(request, id):
                 if texto:
                     Mensagem.objects.create(chamado=chamado, autor=user, texto=texto)
                     messages.success(request, "Mensagem enviada com sucesso.")
-
-                    # 🔥 Atualiza status para "andamento" quando atendente responde
                     if user.tipo in ['atendente', 'administrativo'] and chamado.status == 'aberto':
                         chamado.status = 'andamento'
                         chamado.save(update_fields=['status'])
             return redirect('chamado_detalhes', id=id)
 
-        # Encerramento do chamado
         elif 'mensagem_final' in request.POST:
             if user.tipo in ['atendente', 'administrativo']:
                 texto = request.POST.get('mensagem_final', '')
@@ -140,7 +124,6 @@ def chamado_detalhes(request, id):
                 messages.error(request, "Você não tem permissão para encerrar chamados.")
             return redirect('chamado_detalhes', id=id)
 
-    # Busca todas as mensagens
     mensagens = chamado.mensagens.order_by('data_envio')
 
     return render(request, 'atendimento/chamado_detalhes.html', {
@@ -172,7 +155,6 @@ def fechar_chamado(request, id):
 
 @login_required
 def dashboard(request):
-    # --- filtros do formulário ---
     status_filtro = request.GET.get('status', 'todos')
     mes_inicio = request.GET.get('mes_inicio')
     mes_fim = request.GET.get('mes_fim')

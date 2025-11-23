@@ -2,10 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Categoria, Chamado, Mensagem, Usuario
 
-# ==============================
-# PERSONALIZAÇÕES DE ADMIN
-# ==============================
-
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
     list_display = ('id', 'nome')
@@ -57,5 +53,5 @@ class UsuarioAdmin(UserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'tipo', 'is_staff')
     list_filter = ('tipo', 'is_staff', 'is_superuser')
     fieldsets = UserAdmin.fieldsets + (
-        ('Informações do Sistema', {'fields': ('tipo',)}),
+        ('Informações do Sistema', {'fields': ('tipo', 'categoria')}),
     )
