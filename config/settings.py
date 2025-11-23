@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.utils.timezone import make_aware
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
-# Application definition
-
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -39,11 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'atendimento',
+    'calendario',
 ]
-
-# ==============================
-# CONFIGURAÇÕES DO JAZZMIN
-# ==============================
 
 JAZZMIN_SETTINGS = {
     "site_title": "Painel Administrativo",
@@ -51,19 +46,18 @@ JAZZMIN_SETTINGS = {
     "site_brand": "HelpDesk Django",
     "welcome_sign": "Bem-vindo ao Painel de Administração",
     "copyright": "© 2025 - Seu Nome ou Instituição",
-    "site_logo": "admin/img/logo.png",  # coloque um logo aqui (opcional)
+    "site_logo": "admin/img/logo.png",  
     "site_logo_classes": "img-circle",
     "login_logo": None,
     "login_logo_dark": None,
 
-    # Links de atalho no topo
+
     "topmenu_links": [
         {"name": "Início", "url": "/", "new_window": False},
         {"name": "Documentação Django", "url": "https://docs.djangoproject.com/pt-br/5.0/", "new_window": True},
         {"name": "GitHub", "url": "https://github.com/miihsk", "new_window": True},
     ],
 
-    # Ícones de modelos (usando Font Awesome)
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
@@ -73,9 +67,8 @@ JAZZMIN_SETTINGS = {
         "atendimento.Mensagem": "fas fa-comments",
     },
 
-    # Cores e aparência
     "theme": "minty",  # opções: flatly, darkly, minty, lumen, solar, etc.
-    "dark_mode_theme": "darkly",  # ativa modo escuro automático
+    "dark_mode_theme": "darkly", 
 
     # Menu lateral (ordenação)
     "order_with_respect_to": [
@@ -173,6 +166,7 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 
 USE_TZ = True
+
 
 
 # Static files (CSS, JavaScript, Images)

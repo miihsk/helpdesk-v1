@@ -1,0 +1,149 @@
+{% extends "atendimento/base.html" %}
+
+{% block title %}Calendário - AdepTI{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-calendar3"></i> Calendário de Lembretes</h2>
+
+<div id="calendar"></div>
+
+<!-- Modal Bootstrap -->
+<div class="modal fade" id="modalEvento" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lembrete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="evento_id">
+
+                <div class="mb-3">
+                    <label class="form-label">Título</label>
+                    <input type="text" id="titulo" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Descrição</label>
+                    <textarea id="descricao" class="form-control"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Data e Hora</label>
+                    <input type="datetime-local" id="data" class="form-control">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="btnExcluir" class="btn btn-danger">Excluir</button>
+                <button id="btnSalvar" class="btn btn-primary">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modalElemento = document.getElementById("modalEvento");
+    const modalBootstrap = new bootstrap.Modal(modalElemento);
+    const calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
+        initialView: "dayGridMonth",
+        locale: "pt-br",
+        timeZone: "local",
+
+        events: "/calendario/api/listar/",
+
+        dateClick(info) {
+            abrirModal(null, info.dateStr);
+        },
+
+        eventClick(info) {
+            abrirModal(info.event);
+        }
+    });
+
+    calendar.render();
+
+    function abrirModal(evento, dataSelecionada = null) {
+
+        if (evento) {
+            document.getElementById("evento_id").value = evento.id;
+            document.getElementById("titulo").value = evento.title;
+            document.getElementById("descricao").value = evento.extendedProps.descricao;
+
+            let dt = new Date(evento.start);
+            dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+            document.getElementById("data").value = dt.toISOString().slice(0, 16);
+
+
+            document.getElementById("btnExcluir").style.display = "inline-block";
+
+        } else {
+            document.getElementById("evento_id").value = "";
+            document.getElementById("titulo").value = "";
+            document.getElementById("descricao").value = "";
+            document.getElementById("data").value = dataSelecionada + "T12:00";
+
+            document.getElementById("btnExcluir").style.display = "none";
+        }
+
+        modalBootstrap.show();
+    }
+
+    document.getElementById("btnSalvar").onclick = function () {
+
+        const id = document.getElementById("evento_id").value;
+
+        const dataLocal = document.getElementById("data").value;
+
+        const payload = {
+            titulo: document.getElementById("titulo").value,
+            descricao: document.getElementById("descricao").value,
+            data: dataLocal,
+        };
+
+        const url = id
+            ? `/calendario/api/editar/${id}/`
+            : "/calendario/api/criar/";
+
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        })
+        .then(r => r.json())
+        .then(() => {
+            modalBootstrap.hide();     //
+            calendar.refetchEvents();  
+        });
+    };
+
+    document.getElementById("btnExcluir").onclick = function () {
+
+        const id = document.getElementById("evento_id").value;
+
+        fetch(`/calendario/api/excluir/${id}/`, {
+            method: "DELETE",
+        })
+        .then(() => {
+            modalBootstrap.hide();  
+            calendar.refetchEvents();
+        });
+
+    };
+
+});
+</script>
+
+{% endblock %}

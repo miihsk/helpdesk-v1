@@ -174,11 +174,6 @@ def fechar_chamado(request, id):
 
     return render(request, 'atendimento/fechar_chamado.html', {'chamado': chamado})
 
-
-# ==============================
-# DASHBOARD (ADMINISTRATIVO)
-# ==============================
-
 @login_required
 def dashboard(request):
     """Painel administrativo com estatísticas"""

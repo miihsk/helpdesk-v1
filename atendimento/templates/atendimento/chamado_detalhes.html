@@ -4,10 +4,8 @@
 
 {% if user.tipo == "atendente" or user.tipo == "administrativo" %}
   {% if chamado.status != "resolvido" %}
-    <!-- Botão que mostra o formulário -->
     <button id="btnMostrarForm" class="btn btn-danger mb-3">Fechar Chamado</button>
 
-    <!-- Formulário escondido -->
     <form id="formFecharChamado" action="{% url 'fechar_chamado' chamado.id %}" method="post" style="display:none;" class="mt-3">
       {% csrf_token %}
       <div class="mb-3">
