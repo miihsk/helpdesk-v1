@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
-
 from .models import Chamado, Mensagem, Categoria, Usuario
-
-
-# ==============================
-# LOGIN E LOGOUT
-# ==============================
+import io
+import base64
+from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
+from django.utils import timezone
+import pandas as pd
+import matplotlib.pyplot as plt
+from calendar import monthrange
 
 def login_view(request):
     """Página de login"""
@@ -147,11 +148,6 @@ def chamado_detalhes(request, id):
         'mensagens': mensagens
     })
 
-
-# ==============================
-# FECHAR CHAMADO (rota separada)
-# ==============================
-
 @login_required
 def fechar_chamado(request, id):
     """Encerramento do chamado com observação"""
@@ -176,24 +172,88 @@ def fechar_chamado(request, id):
 
 @login_required
 def dashboard(request):
-    """Painel administrativo com estatísticas"""
-    user = request.user
+    # --- filtros do formulário ---
+    status_filtro = request.GET.get('status', 'todos')
+    mes_inicio = request.GET.get('mes_inicio')
+    mes_fim = request.GET.get('mes_fim')
 
-    if user.tipo in ['administrativo', 'atendente']:
-        chamados = Chamado.objects.all()
-    else:
-        chamados = Chamado.objects.filter(usuario=user)
+    chamados = Chamado.objects.all()
 
-    total = chamados.count()
-    abertos = chamados.filter(status='aberto').count()
-    andamento = chamados.filter(status='andamento').count()
-    resolvidos = chamados.filter(status='resolvido').count()
+    # Filtra por status
+    if status_filtro != 'todos':
+        chamados = chamados.filter(status=status_filtro)
 
-    contexto = {
-        'total': total,
-        'abertos': abertos,
-        'andamento': andamento,
-        'resolvidos': resolvidos
-    }
+    # Filtra por datas
+    if mes_inicio:
+        chamados = chamados.filter(data_abertura__gte=mes_inicio + "-01")
+    if mes_fim:
+        ano, mes = map(int, mes_fim.split("-"))
+        ultimo_dia = monthrange(ano, mes)[1]  # retorna 30 para novembro
+        chamados = chamados.filter(data_abertura__lte=f"{ano}-{mes:02d}-{ultimo_dia}")
 
-    return render(request, 'atendimento/dashboard.html', contexto)
+    df = pd.DataFrame(list(chamados.values(
+        "id",
+        "data_abertura",
+        "data_atualizacao",
+        "status",
+        "categoria__nome",
+    )))
+
+    if df.empty:
+        return render(request, "atendimento/dashboard.html", {"msg": "Nenhum chamado encontrado."})
+
+    images = {}
+
+    # Chamados abertos por mês (linha)
+    df['mes'] = df['data_abertura'].dt.to_period('M')
+    df_abertos_mes = df.groupby('mes').size()
+    fig, ax = plt.subplots(figsize=(8,4))
+    df_abertos_mes.plot(kind='line', marker='o', color='dodgerblue', ax=ax)
+    ax.set_title("Chamados abertos por mês")
+    ax.set_xlabel("Mês")
+    ax.set_ylabel("Quantidade")
+    ax.grid(True, linestyle='--', alpha=0.5)
+    images['abertos_mes'] = fig_to_base64(fig)
+
+    # Chamados por categoria (linha)
+    df_categoria = df.groupby('categoria__nome').size()
+    fig, ax = plt.subplots(figsize=(8,4))
+    df_categoria.plot(kind='line', marker='o', color='orange', ax=ax)
+    ax.set_title("Chamados por categoria")
+    ax.set_xlabel("Categoria")
+    ax.set_ylabel("Quantidade")
+    ax.grid(True, linestyle='--', alpha=0.5)
+    images['por_categoria'] = fig_to_base64(fig)
+
+    # Chamados por status (pizza)
+    df_status = df['status'].value_counts()
+    fig, ax = plt.subplots(figsize=(6,6))
+    df_status.plot(kind='pie', autopct="%1.1f%%", colors=["green", "red", "blue"], ax=ax)
+    ax.set_ylabel("")
+    ax.set_title("Chamados por status")
+    images['abertos_fechados'] = fig_to_base64(fig)
+
+    # Tempo médio de atendimento (linha)
+    df['tempo_atendimento'] = (df['data_atualizacao'] - df['data_abertura']).dt.total_seconds() / 3600
+    media_horas = df['tempo_atendimento'].mean()
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(['Tempo médio'], [media_horas], marker='o', color='purple')
+    ax.set_ylabel("Horas")
+    ax.set_title("Tempo médio de atendimento")
+    ax.grid(True, linestyle='--', alpha=0.5)
+    images['tempo_medio'] = fig_to_base64(fig)
+
+    return render(request, "atendimento/dashboard.html", {
+        "images": images,
+        "status_filtro": status_filtro,
+        "mes_inicio": mes_inicio,
+        "mes_fim": mes_fim,
+    })
+
+
+def fig_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
