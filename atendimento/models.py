@@ -21,6 +21,14 @@ class Chamado(models.Model):
     def __str__(self):
         return f"{self.titulo} ({self.status})"
 
+class Usuario(AbstractUser):
+    TIPOS_USUARIO = (('administrativo', 'Administrativo'), ('atendente', 'Atendente'), ('cliente', 'Cliente'),)
+    tipo = models.CharField(max_length=20, choices=TIPOS_USUARIO, default='cliente', verbose_name='Tipo de Usuário')
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.username} ({self.get_tipo_display()})"
+
 class Mensagem(models.Model):
     chamado = models.ForeignKey(Chamado, on_delete=models.CASCADE, related_name='mensagens')
     autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -29,12 +37,3 @@ class Mensagem(models.Model):
 
     def __str__(self):
         return f"Mensagem de {self.autor.username} em {self.chamado.titulo}"
-
-class Usuario(AbstractUser):
-    TIPOS_USUARIO = (('administrativo', 'Administrativo'), ('atendente', 'Atendente'), ('cliente', 'Cliente'),)
-    tipo = models.CharField(max_length=20, choices=TIPOS_USUARIO, default='cliente', verbose_name='Tipo de Usuário')
-    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True)
-
-
-    def __str__(self):
-        return f"{self.username} ({self.get_tipo_display()})"

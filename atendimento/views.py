@@ -13,6 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from calendar import monthrange
 
+
 def login_view(request):
     """Página de login"""
     if request.user.is_authenticated:
@@ -206,7 +207,7 @@ def dashboard(request):
     # Chamados por status (pizza)
     df_status = df['status'].value_counts()
     fig, ax = plt.subplots(figsize=(6,6))
-    df_status.plot(kind='pie', autopct="%1.1f%%", colors=["green", "red", "blue"], ax=ax)
+    df_status.plot(kind='pie', autopct="%1.1f%%", colors=["green", "red", "yellow"], ax=ax)
     ax.set_ylabel("")
     ax.set_title("Chamados por status")
     images['abertos_fechados'] = fig_to_base64(fig)
@@ -235,3 +236,5 @@ def fig_to_base64(fig):
     plt.close(fig)
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+
