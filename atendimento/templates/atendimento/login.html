@@ -17,6 +17,9 @@
         border-radius: 12px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
+    .btn-reset {
+        margin-top: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -31,6 +34,11 @@
         <button type="submit" class="btn btn-primary w-100">
             Entrar
         </button>
+
+        <!-- Botão de reset de senha -->
+        <a href="{% url 'password_reset' %}" class="btn btn-link w-100 btn-reset text-center">
+            Esqueci minha senha
+        </a>
     </form>
 </div>
 

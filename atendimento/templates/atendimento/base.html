@@ -27,14 +27,18 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Meus Chamados</a></li>
-                <!--<li class="nav-item"><a class="nav-link" href="{% url 'novo_chamado' %}">Novo Chamado</a></li>-->
-                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
 
+                {% if request.user.tipo == 'administrativo' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                {% endif %}
+
+                {% if request.user.tipo == 'atendente' or request.user.tipo == 'administrativo' %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'pagina_calendario' %}">
                         <i class="bi bi-calendar3"></i> Calendário
                     </a>
                 </li>
+                {% endif %}
             </ul>
 {% endif %}
 
@@ -42,7 +46,7 @@
             <span class="navbar-text text-white me-3">Olá, {{ user.username }}</span>
             <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Sair</a>
             {% else %}
-            <a href="{% url 'login' %}" class="btn btn-light btn-sm">Entrar</a>
+            <a href="{% url 'login' %}" class="btn btn-light btn-sm"></a>
             {% endif %}
         </div>
     </div>

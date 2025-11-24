@@ -52,12 +52,8 @@ def index(request):
         chamados = Chamado.objects.all().order_by('-data_abertura')
 
     elif user.tipo == 'atendente':
-        chamados = Chamado.objects.filter(
-            usuario__tipo='cliente'
-        ).exclude(status='resolvido').order_by('-data_abertura')
-
-    elif user.tipo == 'atendente':
-        if user.categoria: chamados = Chamado.objects.filter(categoria=user.categoria).order_by('-data_abertura')
+        if hasattr(user, 'categoria') and user.categoria: 
+            chamados = Chamado.objects.filter(categoria=user.categoria).exclude(status='resolvido').order_by('-data_abertura')
         else: chamados = Chamado.objects.none()
 
     else: 
